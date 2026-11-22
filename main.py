@@ -7,7 +7,7 @@ from typing import Optional
 
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 
 from config import settings
 from logging_config import setup_logging, get_logger
@@ -87,14 +87,33 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
     return JSONResponse(status_code=500, content={"detail": "Internal server error", "request_id": rid})
 
 
-@app.get("/", tags=["system"])
+@app.get("/", response_class=HTMLResponse, tags=["system"])
 def root():
-    return {
-        "name": settings.app_name,
-        "version": settings.app_version,
-        "docs": "/docs",
-        "health": "/health",
-    }
+    return """<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Document Q&A Agent (RAG)</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 720px; margin: 60px auto; padding: 0 20px; color: #222; }
+    h1 { margin-bottom: 8px; }
+    a { color: #2563eb; }
+    code { background: #f3f4f6; padding: 2px 6px; border-radius: 4px; }
+    ul { line-height: 1.8; }
+  </style>
+</head>
+<body>
+  <h1>Document Q&A Agent (RAG)</h1>
+  <p>Backend service is running. Version 1.0.0 &middot; LLM provider: <code>""" + settings.llm_provider + """</code></p>
+  <ul>
+    <li><a href="/docs">Interactive API docs (Swagger)</a></li>
+    <li><a href="/health">Health check</a></li>
+    <li><a href="/v1/models">Model info</a></li>
+  </ul>
+  <p>Use <code>POST /ingest/text</code> to add documents and <code>POST /query</code> to ask questions.</p>
+</body>
+</html>"""
+@app.get("/health", response_model=HealthResponse, tags=["system"])
 def health():
     vs = _state["vector_store"]
     rag = _state["rag"]
