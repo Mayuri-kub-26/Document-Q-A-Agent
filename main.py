@@ -87,7 +87,14 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
     return JSONResponse(status_code=500, content={"detail": "Internal server error", "request_id": rid})
 
 
-@app.get("/health", response_model=HealthResponse, tags=["system"])
+@app.get("/", tags=["system"])
+def root():
+    return {
+        "name": settings.app_name,
+        "version": settings.app_version,
+        "docs": "/docs",
+        "health": "/health",
+    }
 def health():
     vs = _state["vector_store"]
     rag = _state["rag"]
