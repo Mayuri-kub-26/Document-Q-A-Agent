@@ -1,7 +1,7 @@
 """LLM provider abstraction (mock / OpenAI-compatible / Ollama)."""
 
 import os
-from typing import List
+from typing import Dict, List
 
 from openai import OpenAI
 
@@ -12,25 +12,36 @@ logger = get_logger(__name__)
 
 
 SYSTEM_PROMPT = (
-    "You are a helpful assistant that answers questions using ONLY the provided context. "
-    "If the answer is not in the context, say you don't know. "
-    "Always cite the source chunk ids you used when possible. Be concise."
+    "You are a helpful, friendly AI assistant. Answer the user's question in natural, conversational language. "
+    "Use the supplied reference material to ground your answer, but do NOT say phrases like "
+    "'based on the provided context' or 'according to the context'. Just answer directly. "
+    "Be concise but complete; use short paragraphs or bullet lists when helpful. "
+    "Include inline citations like [1], [2] when you use a reference. "
+    "If the references do not contain the answer, say you don't know and suggest a web search or follow-up. "
+    "Use the conversation history to understand follow-up questions."
 )
 
 
-def _build_prompt(question: str, contexts: List[str]) -> str:
+def _build_prompt(question: str, contexts: List[str], history: List[Dict[str, str]] = None) -> str:
     ctx = "\n\n".join(f"[{i+1}] {c}" for i, c in enumerate(contexts))
-    return (
-        f"Context:\n{ctx}\n\n"
-        f"Question: {question}\n\n"
-        "Answer based only on the context above:"
-    )
+    history_text = ""
+    if history:
+        for turn in history[-8:]:
+            role = "User" if turn.get("role") == "user" else "Assistant"
+            history_text += f"{role}: {turn.get('content', '')}\n"
+    parts = []
+    if history_text:
+        parts.append(f"Conversation so far:\n{history_text}")
+    if ctx:
+        parts.append(f"References:\n{ctx}")
+    parts.append(f"Question: {question}\n\nAnswer:")
+    return "\n\n".join(parts)
 
 
 class BaseLLM:
     model_name: str = "unknown"
 
-    def generate(self, question: str, contexts: List[str]) -> str:
+    def generate(self, question: str, contexts: List[str], history: List[Dict[str, str]] = None) -> str:
         raise NotImplementedError
 
 
@@ -39,7 +50,7 @@ class MockLLM(BaseLLM):
 
     model_name = "mock-extractive"
 
-    def generate(self, question: str, contexts: List[str]) -> str:
+    def generate(self, question: str, contexts: List[str], history: List[Dict[str, str]] = None) -> str:
         if not contexts:
             return "I don't know — no relevant documents were found in the knowledge base."
         # Extractive-style answer: return the most relevant sentence-ish snippet.
@@ -63,8 +74,8 @@ class OpenAICompatibleLLM(BaseLLM):
         self.model_name = model
         self._model = model
 
-    def generate(self, question: str, contexts: List[str]) -> str:
-        prompt = _build_prompt(question, contexts)
+    def generate(self, question: str, contexts: List[str], history: List[Dict[str, str]] = None) -> str:
+        prompt = _build_prompt(question, contexts, history)
         try:
             resp = self.client.chat.completions.create(
                 model=self._model,

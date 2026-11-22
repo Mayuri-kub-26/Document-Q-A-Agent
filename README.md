@@ -110,6 +110,8 @@ Supported free LLM providers (no paid key needed beyond free tier):
 - `ollama` → local Ollama
 - `mock` → offline extractive (default, no key)
 
+Live web search is enabled by default (`ENABLE_WEB_SEARCH=true`). Set `WEB_SEARCH_RESULTS` to control how many results are added as references.
+
 ## Tests
 
 ```bash

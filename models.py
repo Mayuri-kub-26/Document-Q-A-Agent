@@ -21,6 +21,10 @@ class QueryRequest(BaseModel):
     question: str = Field(..., min_length=1, description="User question")
     top_k: Optional[int] = Field(default=None, ge=1, le=20, description="Override retrieval count")
     include_sources: bool = Field(default=True, description="Include retrieved source chunks")
+    use_web: bool = Field(default=True, description="Search the live web for additional information")
+    history: Optional[List[Dict[str, str]]] = Field(
+        default=None, description="Previous conversation turns for follow-up questions"
+    )
 
 
 class SourceChunk(BaseModel):

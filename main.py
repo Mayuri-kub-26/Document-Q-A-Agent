@@ -212,6 +212,8 @@ def query_endpoint(payload: QueryRequest):
         question=payload.question,
         top_k=payload.top_k,
         include_sources=payload.include_sources,
+        use_web=payload.use_web,
+        history=payload.history,
     )
 
     sources = [

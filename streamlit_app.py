@@ -79,6 +79,8 @@ if "top_k" not in st.session_state:
     st.session_state.top_k = 4
 if "show_sources" not in st.session_state:
     st.session_state.show_sources = True
+if "use_web" not in st.session_state:
+    st.session_state.use_web = True
 if "backend_url" not in st.session_state:
     st.session_state.backend_url = DEFAULT_BACKEND
 
@@ -109,6 +111,8 @@ def show_sources_widget(sources: List[Dict[str, Any]]) -> None:
             meta = src.get("metadata") or {}
             label = meta.get("source") or src.get("id", f"chunk-{i}")
             st.markdown(f"**[{i}] {label}** · score `{src.get('score')}`")
+            if meta.get("url"):
+                st.markdown(f"🔗 {meta['url']}")
             st.caption(src.get("text", "")[:600])
             if i != len(sources):
                 st.divider()
@@ -205,6 +209,7 @@ with st.sidebar:
         st.text_input("Backend URL", key="backend_url")
         st.slider("Sources to retrieve", 1, 10, 4, key="top_k")
         st.toggle("Show source chunks", key="show_sources")
+        st.toggle("Use live web data", key="use_web")
 
         st.divider()
         st.caption("Danger zone")
@@ -272,6 +277,13 @@ if "pending_prompt" in st.session_state:
     prompt = st.session_state.pop("pending_prompt")
 
 if prompt:
+    # Build history from the current conversation before adding the new turn.
+    history = [
+        {"role": m["role"], "content": m["content"]}
+        for m in messages
+        if m["role"] in ("user", "assistant")
+    ]
+
     # Save user message
     active["messages"].append({"role": "user", "content": prompt})
     if active["title"] == "New chat":
@@ -289,6 +301,8 @@ if prompt:
                         "question": prompt,
                         "top_k": st.session_state.top_k,
                         "include_sources": st.session_state.show_sources,
+                        "use_web": st.session_state.use_web,
+                        "history": history,
                     },
                     timeout=120.0,
                 )

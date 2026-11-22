@@ -49,5 +49,9 @@ class Settings(BaseSettings):
     # Safety
     max_upload_mb: int = 10
 
+    # Web search (live data)
+    enable_web_search: bool = True
+    web_search_results: int = 3
+
 
 settings = Settings()
