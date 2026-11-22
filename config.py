@@ -28,10 +28,19 @@ class Settings(BaseSettings):
     top_k: int = 4
 
     # LLM
-    llm_provider: str = "mock"  # mock | openai | ollama
+    llm_provider: str = "mock"  # mock | openai | ollama | gemini | openrouter
     openai_api_key: str = ""
     openai_base_url: str = "https://api.openai.com/v1"
     openai_model: str = "gpt-4o-mini"
+
+    # Free LLM providers (OpenAI-compatible endpoints)
+    gemini_api_key: str = ""
+    gemini_base_url: str = "https://generativelanguage.googleapis.com/v1beta/openai/"
+    gemini_model: str = "gemini-3.5-flash-lite"
+    openrouter_api_key: str = ""
+    openrouter_base_url: str = "https://openrouter.ai/api/v1"
+    openrouter_model: str = "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free"
+
     ollama_base_url: str = "http://localhost:11434/v1"
     ollama_model: str = "llama3.2"
     temperature: float = 0.2

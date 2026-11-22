@@ -91,6 +91,12 @@ curl -X POST http://localhost:8000/query \
 
 See `.env.example`. Key vars: `LLM_PROVIDER`, `OPENAI_API_KEY`, `CHUNK_SIZE`, `TOP_K`.
 
+Supported free LLM providers (no paid key needed beyond free tier):
+- `gemini` → Google Gemini (`GEMINI_API_KEY`)
+- `openrouter` → OpenRouter free models (`OPENROUTER_API_KEY`)
+- `ollama` → local Ollama
+- `mock` → offline extractive (default, no key)
+
 ## Tests
 
 ```bash

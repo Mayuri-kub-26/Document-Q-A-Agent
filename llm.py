@@ -55,8 +55,11 @@ class MockLLM(BaseLLM):
 
 
 class OpenAICompatibleLLM(BaseLLM):
-    def __init__(self, base_url: str, api_key: str, model: str) -> None:
-        self.client = OpenAI(base_url=base_url, api_key=api_key or "dummy")
+    def __init__(self, base_url: str, api_key: str, model: str, extra_headers: dict = None) -> None:
+        client_kwargs = {"base_url": base_url, "api_key": api_key or "dummy"}
+        if extra_headers:
+            client_kwargs["default_headers"] = extra_headers
+        self.client = OpenAI(**client_kwargs)
         self.model_name = model
         self._model = model
 
@@ -72,7 +75,13 @@ class OpenAICompatibleLLM(BaseLLM):
                 temperature=settings.temperature,
                 max_tokens=settings.max_tokens,
             )
-            content = (resp.choices[0].message.content or "").strip()
+            msg = resp.choices[0].message
+            content = (msg.content or "").strip()
+            if not content:
+                # Some free/reasoning models put the answer in `reasoning`.
+                reasoning = getattr(msg, "reasoning", None)
+                if reasoning:
+                    content = str(reasoning).strip()
             if not content:
                 return "The model returned an empty response. Try rephrasing the question."
             return content
@@ -96,6 +105,28 @@ def get_llm():
             base_url=settings.openai_base_url,
             api_key=settings.openai_api_key,
             model=settings.openai_model,
+        )
+    if provider == "gemini":
+        if not settings.gemini_api_key:
+            logger.warning("gemini_key_missing_falling_back_to_mock")
+            return MockLLM()
+        return OpenAICompatibleLLM(
+            base_url=settings.gemini_base_url,
+            api_key=settings.gemini_api_key,
+            model=settings.gemini_model,
+        )
+    if provider == "openrouter":
+        if not settings.openrouter_api_key:
+            logger.warning("openrouter_key_missing_falling_back_to_mock")
+            return MockLLM()
+        return OpenAICompatibleLLM(
+            base_url=settings.openrouter_base_url,
+            api_key=settings.openrouter_api_key,
+            model=settings.openrouter_model,
+            extra_headers={
+                "HTTP-Referer": "https://github.com/Mayuri-kub-26/Document-Q-A-Agent",
+                "X-Title": "Document Q&A Agent",
+            },
         )
     if provider == "ollama":
         return OpenAICompatibleLLM(
