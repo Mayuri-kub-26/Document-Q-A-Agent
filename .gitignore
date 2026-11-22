@@ -1,0 +1,36 @@
+# Environment / secrets
+.env
+*.env.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+pip-wheel-metadata/
+
+# Data / vector store
+data/
+*.sqlite3
+
+# Tests cache
+tests/__pycache__/
+.pytest_cache/
+
+# Docker
+.git
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.bak
+*.md.bak
+
+# OS
+.DS_Store
+Thumbs.db
