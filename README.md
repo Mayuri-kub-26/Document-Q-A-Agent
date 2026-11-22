@@ -47,6 +47,7 @@ RAG = "search first, then answer". Instead of asking an LLM to answer from memor
 | `llm.py` | LLM provider abstraction |
 | `rag_pipeline.py` | Orchestration |
 | `logging_config.py` | Structured JSON logging |
+| `streamlit_app.py` | Streamlit web UI (chat, upload, store) |
 
 ## How to Run (local)
 
@@ -59,11 +60,23 @@ python -m uvicorn main:app --host 0.0.0.0 --port 8000
 
 Open docs: http://localhost:8000/docs
 
+### Streamlit frontend (recommended UI)
+
+With the API running, start the UI in a second terminal:
+
+```bash
+streamlit run streamlit_app.py
+```
+
+Open http://localhost:8501. Use the **Upload documents** tab to add files, then the **Chat** tab to ask questions.
+
 ## How to Run (Docker)
 
 ```bash
 docker compose up --build
 ```
+
+API: http://localhost:8000 · Streamlit UI: http://localhost:8501
 
 ## API Endpoints
 
